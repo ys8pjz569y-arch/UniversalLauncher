@@ -1266,6 +1266,19 @@ namespace UniversalLauncher
                 if (_appCombos[i] != null) _appValues[i] = _appCombos[i].Text;
         }
 
+        // 删除某一行应用，后面的行依次上移，数量自动减一
+        private void DeleteAppRow(int idx)
+        {
+            if (idx < 0 || idx >= (int)numCount.Value) return;
+            CaptureCurrentAppValues(); // 先把当前所有行的内容同步到 _appValues
+            for (int i = idx; i < MaxApps - 1; i++)
+                _appValues[i] = _appValues[i + 1];
+            _appValues[MaxApps - 1] = "";
+            _suppressAppCapture = true; // 数量变化时勿用旧行内容覆盖新值
+            numCount.Value--;
+            _suppressAppCapture = false;
+        }
+
         private void RebuildAppRows()
         {
             int n = (int)numCount.Value;
@@ -1277,21 +1290,25 @@ namespace UniversalLauncher
             {
                 ComboBox cmb = new ComboBox();
                 cmb.Location = new Point(50, i * 36);
-                cmb.Size = new Size(244, 26);
+                cmb.Size = new Size(220, 26);
                 cmb.DropDownStyle = ComboBoxStyle.DropDown;
                 if (!string.IsNullOrEmpty(_appValues[i])) cmb.Text = _appValues[i];
                 _appCombos[i] = cmb;
 
                 var lbl = new Label { Text = "应用" + (i + 1), Location = new Point(4, 6 + i * 36), AutoSize = true };
-                var btnSearch = new Button { Text = "搜索…", Location = new Point(300, i * 36), Size = new Size(72, 26) };
+                var btnSearch = new Button { Text = "搜索…", Location = new Point(272, i * 36), Size = new Size(60, 26) };
                 btnSearch.Click += delegate { SearchAppForRow(cmb); };
-                var btnBrowse = new Button { Text = "浏览…", Location = new Point(378, i * 36), Size = new Size(76, 26) };
+                var btnBrowse = new Button { Text = "浏览…", Location = new Point(334, i * 36), Size = new Size(60, 26) };
                 btnBrowse.Click += delegate { BrowseForApp(cmb); };
+                int row = i;
+                var btnDel = new Button { Text = "删", Location = new Point(396, i * 36), Size = new Size(42, 26) };
+                btnDel.Click += delegate { DeleteAppRow(row); };
 
                 pnlApps.Controls.Add(lbl);
                 pnlApps.Controls.Add(cmb);
                 pnlApps.Controls.Add(btnSearch);
                 pnlApps.Controls.Add(btnBrowse);
+                pnlApps.Controls.Add(btnDel);
             }
         }
 
@@ -1308,6 +1325,19 @@ namespace UniversalLauncher
                 if (_urlBoxes[i] != null) _urlValues[i] = _urlBoxes[i].Text;
         }
 
+        // 删除某一行网址，后面的行依次上移，数量自动减一
+        private void DeleteUrlRow(int idx)
+        {
+            if (idx < 0 || idx >= (int)numUrlCount.Value) return;
+            CaptureCurrentUrlValues(); // 先把当前所有行的内容同步到 _urlValues
+            for (int i = idx; i < MaxUrls - 1; i++)
+                _urlValues[i] = _urlValues[i + 1];
+            _urlValues[MaxUrls - 1] = "";
+            _suppressUrlCapture = true; // 数量变化时勿用旧行内容覆盖新值
+            numUrlCount.Value--;
+            _suppressUrlCapture = false;
+        }
+
         private void RebuildUrlRows()
         {
             int n = (int)numUrlCount.Value;
@@ -1319,13 +1349,18 @@ namespace UniversalLauncher
             {
                 TextBox tb = new TextBox();
                 tb.Location = new Point(50, i * 36);
-                tb.Size = new Size(400, 26);
+                tb.Size = new Size(344, 26);
                 if (!string.IsNullOrEmpty(_urlValues[i])) tb.Text = _urlValues[i];
                 _urlBoxes[i] = tb;
 
                 var lbl = new Label { Text = "网址" + (i + 1), Location = new Point(4, 6 + i * 36), AutoSize = true };
+                int row = i;
+                var btnDel = new Button { Text = "删", Location = new Point(396, i * 36), Size = new Size(42, 26) };
+                btnDel.Click += delegate { DeleteUrlRow(row); };
+
                 pnlUrls.Controls.Add(lbl);
                 pnlUrls.Controls.Add(tb);
+                pnlUrls.Controls.Add(btnDel);
             }
         }
 
