@@ -1,0 +1,8 @@
+# 个人配置（含设备 ID、个人应用路径，不要上传）
+config.txt
+profiles.txt
+
+# 运行产生的诊断/临时文件
+UniversalLauncher.run.txt
+UniversalLauncher.check.txt
+launch_log.txt

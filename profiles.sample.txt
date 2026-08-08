@@ -1,0 +1,10 @@
+# UniversalLauncher 方案文件：每个 [方案名] 是一套配置，可手改
+# input=键盘布局ID（00000409=美式键盘 / 00000804=简体中文）；留空=不切换
+# capture=声音输入设备ID；render=声音输出设备ID；apps=应用路径；urls=网址，多个用 | 分隔
+
+[默认方案]
+input=00000409
+capture={0.0.1.00000000}.{你的麦克风设备ID}
+render={0.0.0.00000000}.{你的扬声器设备ID}
+apps=C:\Windows\System32\notepad.exe
+urls=https://www.bilibili.com

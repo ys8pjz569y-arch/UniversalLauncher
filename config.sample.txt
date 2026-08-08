@@ -1,0 +1,7 @@
+# UniversalLauncher 当前激活方案：lastprofile=方案名
+lastprofile=默认方案
+input=00000409
+capture={0.0.1.00000000}.{你的麦克风设备ID}
+render={0.0.0.00000000}.{你的扬声器设备ID}
+apps=C:\Windows\System32\notepad.exe
+urls=https://www.bilibili.com
