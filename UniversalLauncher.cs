@@ -41,6 +41,132 @@ namespace UniversalLauncher
         public List<string> Urls = new List<string>();
     }
 
+    // ==================== 主题与样式 ====================
+    internal static class Theme
+    {
+        public static readonly Color Bg = Color.FromArgb(243, 245, 249);
+        public static readonly Color CardBg = Color.White;
+        public static readonly Color Accent = Color.FromArgb(79, 107, 237);
+        public static readonly Color AccentHover = Color.FromArgb(59, 86, 199);
+        public static readonly Color AccentLight = Color.FromArgb(238, 242, 255);
+        public static readonly Color TextDark = Color.FromArgb(30, 34, 42);
+        public static readonly Color TextGray = Color.FromArgb(110, 118, 132);
+        public static readonly Color Border = Color.FromArgb(222, 226, 234);
+        public static readonly Color Danger = Color.FromArgb(239, 68, 68);
+        public static readonly Color DangerHover = Color.FromArgb(217, 37, 37);
+        public static readonly Color BtnGray = Color.FromArgb(243, 244, 246);
+        public static readonly Color BtnGrayHover = Color.FromArgb(231, 235, 242);
+        public static readonly Color BtnGrayDown = Color.FromArgb(218, 222, 230);
+
+        public static readonly Font UI = new Font("Microsoft YaHei UI", 9F);
+        public static readonly Font UIBold = new Font("Microsoft YaHei UI", 9F, FontStyle.Bold);
+        public static readonly Font TitleBig = new Font("Microsoft YaHei UI", 16F, FontStyle.Bold);
+        public static readonly Font LaunchBig = new Font("Microsoft YaHei UI", 14F, FontStyle.Bold);
+    }
+
+    internal static class AppIcon
+    {
+        public static Icon Load()
+        {
+            return Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+        }
+    }
+
+    internal sealed class StyledGroupBox : GroupBox
+    {
+        private const int HeaderH = 26;
+
+        public StyledGroupBox()
+        {
+            BackColor = Theme.CardBg;
+            ForeColor = Theme.TextDark;
+            Font = Theme.UIBold;
+            DoubleBuffered = true;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+
+            using (var b = new SolidBrush(Theme.CardBg))
+                g.FillRectangle(b, 0, 0, Width, Height);
+
+            using (var b = new SolidBrush(Theme.AccentLight))
+                g.FillRectangle(b, 0, 0, Width, HeaderH);
+
+            using (var b = new SolidBrush(Theme.Accent))
+                g.FillRectangle(b, 0, 0, 4, HeaderH);
+
+            var textRect = new Rectangle(14, 0, Width - 28, HeaderH);
+            TextRenderer.DrawText(g, Text, Theme.UIBold, textRect, Theme.Accent,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+
+            using (var p = new Pen(Theme.Border, 1))
+                g.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
+        }
+    }
+
+    internal static class Ui
+    {
+        public static Button MakeButton(string text, string style = "default")
+        {
+            var btn = new Button
+            {
+                Text = text,
+                FlatStyle = FlatStyle.Flat,
+                Font = Theme.UI,
+                UseVisualStyleBackColor = false,
+                Cursor = Cursors.Hand,
+                BackColor = Theme.BtnGray,
+                ForeColor = Theme.TextDark
+            };
+            btn.FlatAppearance.BorderSize = 0;
+            btn.FlatAppearance.MouseOverBackColor = Theme.BtnGrayHover;
+            btn.FlatAppearance.MouseDownBackColor = Theme.BtnGrayDown;
+
+            if (style == "primary")
+            {
+                btn.BackColor = Theme.Accent;
+                btn.ForeColor = Color.White;
+                btn.Font = Theme.UIBold;
+                btn.FlatAppearance.MouseOverBackColor = Theme.AccentHover;
+                btn.FlatAppearance.MouseDownBackColor = Theme.AccentHover;
+            }
+            else if (style == "danger")
+            {
+                btn.BackColor = Theme.Danger;
+                btn.ForeColor = Color.White;
+                btn.FlatAppearance.MouseOverBackColor = Theme.DangerHover;
+                btn.FlatAppearance.MouseDownBackColor = Theme.DangerHover;
+            }
+            return btn;
+        }
+
+        public static ComboBox MakeCombo(ComboBoxStyle style = ComboBoxStyle.DropDownList)
+        {
+            return new ComboBox
+            {
+                DropDownStyle = style,
+                FlatStyle = FlatStyle.Flat,
+                Font = Theme.UI,
+                BackColor = Color.White,
+                ForeColor = Theme.TextDark
+            };
+        }
+
+        public static Label MakeLabel(string text, bool gray = false)
+        {
+            return new Label
+            {
+                Text = text,
+                Font = Theme.UI,
+                ForeColor = gray ? Theme.TextGray : Theme.TextDark,
+                AutoSize = true,
+                BackColor = Theme.CardBg
+            };
+        }
+    }
+
     // ==================== 原生 API / COM ====================
     internal static class Native
     {
@@ -760,9 +886,12 @@ namespace UniversalLauncher
             MaximizeBox = false;
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterParent;
-            Font = new Font("Microsoft YaHei UI", 9);
+            Font = Theme.UI;
+            BackColor = Theme.Bg;
+            ForeColor = Theme.TextDark;
+            Icon = AppIcon.Load();
 
-            txtSearch = new TextBox { Location = new Point(12, 12), Size = new Size(556, 26) };
+            txtSearch = new TextBox { Location = new Point(12, 12), Size = new Size(556, 26), Font = Theme.UI, BackColor = Color.White };
             txtSearch.TextChanged += delegate { Filter(); };
             txtSearch.KeyDown += OnSearchKeyDown;
             Controls.Add(txtSearch);
@@ -774,16 +903,23 @@ namespace UniversalLauncher
                 View = View.Details,
                 FullRowSelect = true,
                 HideSelection = false,
-                MultiSelect = false
+                MultiSelect = false,
+                Font = Theme.UI,
+                BackColor = Color.White,
+                ForeColor = Theme.TextDark
             };
             lv.Columns.Add("名称", 240);
             lv.Columns.Add("路径", 310);
             lv.DoubleClick += delegate { Accept(); };
             Controls.Add(lv);
 
-            var btnOk = new Button { Text = "确定", Location = new Point(372, 418), Size = new Size(92, 34) };
+            var btnOk = Ui.MakeButton("确定", "primary");
+            btnOk.Location = new Point(372, 418);
+            btnOk.Size = new Size(92, 34);
             btnOk.Click += delegate { Accept(); };
-            var btnCancel = new Button { Text = "取消", Location = new Point(476, 418), Size = new Size(92, 34) };
+            var btnCancel = Ui.MakeButton("取消");
+            btnCancel.Location = new Point(476, 418);
+            btnCancel.Size = new Size(92, 34);
             btnCancel.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
             Controls.Add(btnOk);
             Controls.Add(btnCancel);
@@ -869,13 +1005,21 @@ namespace UniversalLauncher
             MaximizeBox = false;
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterParent;
-            Font = new Font("Microsoft YaHei UI", 9);
+            Font = Theme.UI;
+            BackColor = Theme.Bg;
+            ForeColor = Theme.TextDark;
+            Icon = AppIcon.Load();
 
-            var lbl = new Label { Text = "方案名称：", Location = new Point(14, 15), AutoSize = true };
-            txt = new TextBox { Location = new Point(96, 12), Size = new Size(228, 26), Text = defaultValue ?? "" };
-            var ok = new Button { Text = "确定", Location = new Point(140, 54), Size = new Size(88, 32) };
+            var lbl = Ui.MakeLabel("方案名称：");
+            lbl.Location = new Point(14, 15);
+            txt = new TextBox { Location = new Point(96, 12), Size = new Size(228, 26), Text = defaultValue ?? "", Font = Theme.UI, BackColor = Color.White };
+            var ok = Ui.MakeButton("确定", "primary");
+            ok.Location = new Point(140, 54);
+            ok.Size = new Size(88, 32);
             ok.Click += delegate { ResultName = txt.Text.Trim(); DialogResult = DialogResult.OK; Close(); };
-            var cancel = new Button { Text = "取消", Location = new Point(236, 54), Size = new Size(88, 32) };
+            var cancel = Ui.MakeButton("取消");
+            cancel.Location = new Point(236, 54);
+            cancel.Size = new Size(88, 32);
             cancel.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
             Controls.Add(lbl);
             Controls.Add(txt);
@@ -883,6 +1027,93 @@ namespace UniversalLauncher
             Controls.Add(cancel);
             AcceptButton = ok;
             CancelButton = cancel;
+        }
+    }
+
+    // ==================== 启动结果弹窗（带倒计时自动关闭） ====================
+    internal sealed class LaunchResultDialog : Form
+    {
+        private readonly System.Windows.Forms.Timer _timer;
+        private int _countdown = 5;
+        private readonly Button _btnOk;
+        private readonly Button _btnCancel;
+
+        /// <summary>是否应该关闭整个应用。</summary>
+        public bool AutoCloseApp { get; private set; }
+
+        public LaunchResultDialog(List<string> results)
+        {
+            Text = "一键启动结果";
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            StartPosition = FormStartPosition.CenterParent;
+            TopMost = true; // 始终置顶，不被启动的应用遮挡
+            Font = Theme.UI;
+            BackColor = Theme.Bg;
+            ForeColor = Theme.TextDark;
+            Icon = AppIcon.Load();
+
+            // 根据结果行数动态计算高度
+            int lineCount = results.Count > 0 ? results.Count : 1;
+            int txtHeight = lineCount * 20 + 16;
+            if (txtHeight < 80) txtHeight = 80;
+            if (txtHeight > 320) txtHeight = 320;
+            int formHeight = txtHeight + 76;
+
+            ClientSize = new Size(460, formHeight);
+
+            var txtResults = new TextBox
+            {
+                Location = new Point(12, 12),
+                Size = new Size(436, txtHeight),
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical,
+                Font = Theme.UI,
+                BackColor = Color.White,
+                ForeColor = Theme.TextDark,
+                Text = string.Join("\r\n", results.ToArray())
+            };
+            Controls.Add(txtResults);
+
+            _btnOk = Ui.MakeButton("立即关闭 (5)", "primary");
+            _btnOk.Location = new Point(196, txtHeight + 22);
+            _btnOk.Size = new Size(120, 34);
+            _btnOk.Click += delegate { AutoCloseApp = true; DialogResult = DialogResult.OK; Close(); };
+            Controls.Add(_btnOk);
+
+            _btnCancel = Ui.MakeButton("不关闭");
+            _btnCancel.Location = new Point(326, txtHeight + 22);
+            _btnCancel.Size = new Size(100, 34);
+            _btnCancel.Click += delegate { AutoCloseApp = false; DialogResult = DialogResult.Cancel; Close(); };
+            Controls.Add(_btnCancel);
+
+            _timer = new System.Windows.Forms.Timer { Interval = 1000 };
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            _countdown--;
+            if (_countdown <= 0)
+            {
+                _timer.Stop();
+                AutoCloseApp = true;
+                DialogResult = DialogResult.OK;
+                Close();
+            }
+            else
+            {
+                _btnOk.Text = "立即关闭 (" + _countdown + ")";
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && _timer != null) _timer.Dispose();
+            base.Dispose(disposing);
         }
     }
 
@@ -913,11 +1144,14 @@ namespace UniversalLauncher
         public MainForm()
         {
             Text = "通用一键启动器";
-            ClientSize = new Size(1010, 715);
+            ClientSize = new Size(1010, 766);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
-            Font = new Font("Microsoft YaHei UI", 9);
+            Font = Theme.UI;
+            BackColor = Theme.Bg;
+            ForeColor = Theme.TextDark;
+            Icon = AppIcon.Load();
 
             Config.EnsureProfiles();
 
@@ -938,26 +1172,57 @@ namespace UniversalLauncher
 
         private void BuildUi()
         {
-            var lblTip = new Label
+            // ---- 顶部标题栏 ----
+            var pnlHeader = new Panel { Location = new Point(0, 0), Size = new Size(1010, 64), BackColor = Theme.CardBg };
+            var pnlAccentBar = new Panel { Location = new Point(0, 0), Size = new Size(4, 64), BackColor = Theme.Accent };
+            var lblTitle = new Label
             {
-                Text = "选择输入法、声音设备、要启动的应用和网址，可保存成多套方案后一键启动。",
-                Location = new Point(14, 10),
-                AutoSize = true
+                Text = "通用一键启动器",
+                Font = Theme.TitleBig,
+                ForeColor = Theme.Accent,
+                Location = new Point(20, 10),
+                AutoSize = true,
+                BackColor = Theme.CardBg
             };
-            Controls.Add(lblTip);
+            var lblSubtitle = new Label
+            {
+                Text = "选择输入法、声音设备、应用和网址，保存成多套方案后一键启动",
+                Font = Theme.UI,
+                ForeColor = Theme.TextGray,
+                Location = new Point(22, 38),
+                AutoSize = true,
+                BackColor = Theme.CardBg
+            };
+            var pnlHeaderLine = new Panel { Location = new Point(0, 63), Size = new Size(1010, 1), BackColor = Theme.Border };
+            pnlHeader.Controls.Add(pnlAccentBar);
+            pnlHeader.Controls.Add(lblTitle);
+            pnlHeader.Controls.Add(lblSubtitle);
+            pnlHeader.Controls.Add(pnlHeaderLine);
+            Controls.Add(pnlHeader);
 
-            // 方案栏
-            var grpProfile = new GroupBox { Text = "方案", Location = new Point(12, 38), Size = new Size(986, 62) };
-            var lblProfile = new Label { Text = "方案：", Location = new Point(14, 25), AutoSize = true };
-            cmbProfile = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(58, 21), Size = new Size(160, 26) };
+            // ---- 方案 ----
+            var grpProfile = new StyledGroupBox { Text = "方案", Location = new Point(12, 72), Size = new Size(986, 62) };
+            var lblProfile = Ui.MakeLabel("方案：");
+            lblProfile.Location = new Point(14, 35);
+            cmbProfile = Ui.MakeCombo();
+            cmbProfile.Location = new Point(58, 31);
+            cmbProfile.Size = new Size(160, 26);
             cmbProfile.SelectedIndexChanged += cmbProfile_SelectedIndexChanged;
-            var btnNew = new Button { Text = "新增方案", Location = new Point(240, 20), Size = new Size(72, 26), Font = new Font("Microsoft YaHei UI", 9, FontStyle.Bold) };
+            var btnNew = Ui.MakeButton("新增方案", "primary");
+            btnNew.Location = new Point(240, 30);
+            btnNew.Size = new Size(80, 28);
             btnNew.Click += btnNew_Click;
-            var btnSave = new Button { Text = "保存", Location = new Point(318, 20), Size = new Size(58, 26) };
+            var btnSave = Ui.MakeButton("保存");
+            btnSave.Location = new Point(328, 30);
+            btnSave.Size = new Size(64, 28);
             btnSave.Click += btnSave_Click;
-            var btnRename = new Button { Text = "重命名", Location = new Point(382, 20), Size = new Size(64, 26) };
+            var btnRename = Ui.MakeButton("重命名");
+            btnRename.Location = new Point(400, 30);
+            btnRename.Size = new Size(72, 28);
             btnRename.Click += btnRename_Click;
-            var btnDelete = new Button { Text = "删除", Location = new Point(452, 20), Size = new Size(58, 26) };
+            var btnDelete = Ui.MakeButton("删除", "danger");
+            btnDelete.Location = new Point(480, 30);
+            btnDelete.Size = new Size(64, 28);
             btnDelete.Click += btnDelete_Click;
             grpProfile.Controls.Add(lblProfile);
             grpProfile.Controls.Add(cmbProfile);
@@ -967,30 +1232,43 @@ namespace UniversalLauncher
             grpProfile.Controls.Add(btnDelete);
             Controls.Add(grpProfile);
 
-            var grpInput = new GroupBox { Text = "输入法", Location = new Point(12, 108), Size = new Size(986, 62) };
-            cmbInput = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(14, 25), Size = new Size(940, 26) };
+            // ---- 输入法 ----
+            var grpInput = new StyledGroupBox { Text = "输入法", Location = new Point(12, 142), Size = new Size(986, 62) };
+            cmbInput = Ui.MakeCombo();
+            cmbInput.Location = new Point(14, 32);
+            cmbInput.Size = new Size(940, 26);
             grpInput.Controls.Add(cmbInput);
             Controls.Add(grpInput);
 
-            var grpAudio = new GroupBox { Text = "声音", Location = new Point(12, 178), Size = new Size(986, 90) };
-            var lblCap = new Label { Text = "声音输入（麦克风）", Location = new Point(14, 24), AutoSize = true };
-            cmbCapture = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(150, 20), Size = new Size(804, 26) };
-            var lblRen = new Label { Text = "声音输出（扬声器）", Location = new Point(14, 56), AutoSize = true };
-            cmbRender = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(150, 52), Size = new Size(804, 26) };
+            // ---- 声音 ----
+            var grpAudio = new StyledGroupBox { Text = "声音", Location = new Point(12, 212), Size = new Size(986, 100) };
+            var lblCap = Ui.MakeLabel("声音输入（麦克风）", true);
+            lblCap.Location = new Point(14, 36);
+            cmbCapture = Ui.MakeCombo();
+            cmbCapture.Location = new Point(150, 32);
+            cmbCapture.Size = new Size(804, 26);
+            var lblRen = Ui.MakeLabel("声音输出（扬声器）", true);
+            lblRen.Location = new Point(14, 68);
+            cmbRender = Ui.MakeCombo();
+            cmbRender.Location = new Point(150, 64);
+            cmbRender.Size = new Size(804, 26);
             grpAudio.Controls.Add(lblCap);
             grpAudio.Controls.Add(cmbCapture);
             grpAudio.Controls.Add(lblRen);
             grpAudio.Controls.Add(cmbRender);
             Controls.Add(grpAudio);
 
-            var grpApps = new GroupBox { Text = "要启动的应用", Location = new Point(12, 276), Size = new Size(484, 384) };
-            var lblCount = new Label { Text = "一次启动几个应用：", Location = new Point(14, 26), AutoSize = true };
-            numCount = new NumericUpDown { Location = new Point(150, 22), Size = new Size(64, 26), Minimum = 0, Maximum = MaxApps };
+            // ---- 应用 ----
+            var grpApps = new StyledGroupBox { Text = "要启动的应用", Location = new Point(12, 320), Size = new Size(484, 390) };
+            var lblCount = Ui.MakeLabel("一次启动几个应用：", true);
+            lblCount.Location = new Point(14, 36);
+            numCount = new NumericUpDown { Location = new Point(150, 32), Size = new Size(64, 26), Minimum = 0, Maximum = MaxApps, Font = Theme.UI, BackColor = Color.White };
             pnlApps = new Panel
             {
-                Location = new Point(10, 56),
-                Size = new Size(464, 320),
+                Location = new Point(10, 66),
+                Size = new Size(464, 312),
                 AutoScroll = true,
+                BackColor = Theme.CardBg,
                 BorderStyle = BorderStyle.FixedSingle
             };
             grpApps.Controls.Add(lblCount);
@@ -998,14 +1276,17 @@ namespace UniversalLauncher
             grpApps.Controls.Add(pnlApps);
             Controls.Add(grpApps);
 
-            var grpUrls = new GroupBox { Text = "要打开的网址", Location = new Point(506, 276), Size = new Size(484, 384) };
-            var lblUrlCount = new Label { Text = "一次打开几个网址：", Location = new Point(14, 26), AutoSize = true };
-            numUrlCount = new NumericUpDown { Location = new Point(150, 22), Size = new Size(64, 26), Minimum = 0, Maximum = MaxUrls };
+            // ---- 网址 ----
+            var grpUrls = new StyledGroupBox { Text = "要打开的网址", Location = new Point(506, 320), Size = new Size(484, 390) };
+            var lblUrlCount = Ui.MakeLabel("一次打开几个网址：", true);
+            lblUrlCount.Location = new Point(14, 36);
+            numUrlCount = new NumericUpDown { Location = new Point(150, 32), Size = new Size(64, 26), Minimum = 0, Maximum = MaxUrls, Font = Theme.UI, BackColor = Color.White };
             pnlUrls = new Panel
             {
-                Location = new Point(10, 56),
-                Size = new Size(464, 320),
+                Location = new Point(10, 66),
+                Size = new Size(464, 312),
                 AutoScroll = true,
+                BackColor = Theme.CardBg,
                 BorderStyle = BorderStyle.FixedSingle
             };
             grpUrls.Controls.Add(lblUrlCount);
@@ -1013,13 +1294,11 @@ namespace UniversalLauncher
             grpUrls.Controls.Add(pnlUrls);
             Controls.Add(grpUrls);
 
-            var btnLaunch = new Button
-            {
-                Text = "一键启动",
-                Location = new Point(405, 668),
-                Size = new Size(200, 42),
-                Font = new Font("Microsoft YaHei UI", 13, FontStyle.Bold)
-            };
+            // ---- 一键启动 ----
+            var btnLaunch = Ui.MakeButton("⚡ 一键启动", "primary");
+            btnLaunch.Location = new Point(375, 718);
+            btnLaunch.Size = new Size(260, 44);
+            btnLaunch.Font = Theme.LaunchBig;
             btnLaunch.Click += btnLaunch_Click;
             Controls.Add(btnLaunch);
         }
@@ -1288,20 +1567,26 @@ namespace UniversalLauncher
 
             for (int i = 0; i < n; i++)
             {
-                ComboBox cmb = new ComboBox();
+                ComboBox cmb = Ui.MakeCombo(ComboBoxStyle.DropDown);
                 cmb.Location = new Point(50, i * 36);
                 cmb.Size = new Size(220, 26);
-                cmb.DropDownStyle = ComboBoxStyle.DropDown;
                 if (!string.IsNullOrEmpty(_appValues[i])) cmb.Text = _appValues[i];
                 _appCombos[i] = cmb;
 
-                var lbl = new Label { Text = "应用" + (i + 1), Location = new Point(4, 6 + i * 36), AutoSize = true };
-                var btnSearch = new Button { Text = "搜索…", Location = new Point(272, i * 36), Size = new Size(60, 26) };
+                var lbl = Ui.MakeLabel("应用" + (i + 1), true);
+                lbl.Location = new Point(4, 6 + i * 36);
+                var btnSearch = Ui.MakeButton("搜索…");
+                btnSearch.Location = new Point(272, i * 36);
+                btnSearch.Size = new Size(60, 26);
                 btnSearch.Click += delegate { SearchAppForRow(cmb); };
-                var btnBrowse = new Button { Text = "浏览…", Location = new Point(334, i * 36), Size = new Size(60, 26) };
+                var btnBrowse = Ui.MakeButton("浏览…");
+                btnBrowse.Location = new Point(334, i * 36);
+                btnBrowse.Size = new Size(60, 26);
                 btnBrowse.Click += delegate { BrowseForApp(cmb); };
                 int row = i;
-                var btnDel = new Button { Text = "删", Location = new Point(396, i * 36), Size = new Size(42, 26) };
+                var btnDel = Ui.MakeButton("删", "danger");
+                btnDel.Location = new Point(396, i * 36);
+                btnDel.Size = new Size(42, 26);
                 btnDel.Click += delegate { DeleteAppRow(row); };
 
                 pnlApps.Controls.Add(lbl);
@@ -1350,12 +1635,17 @@ namespace UniversalLauncher
                 TextBox tb = new TextBox();
                 tb.Location = new Point(50, i * 36);
                 tb.Size = new Size(344, 26);
+                tb.Font = Theme.UI;
+                tb.BackColor = Color.White;
                 if (!string.IsNullOrEmpty(_urlValues[i])) tb.Text = _urlValues[i];
                 _urlBoxes[i] = tb;
 
-                var lbl = new Label { Text = "网址" + (i + 1), Location = new Point(4, 6 + i * 36), AutoSize = true };
+                var lbl = Ui.MakeLabel("网址" + (i + 1), true);
+                lbl.Location = new Point(4, 6 + i * 36);
                 int row = i;
-                var btnDel = new Button { Text = "删", Location = new Point(396, i * 36), Size = new Size(42, 26) };
+                var btnDel = Ui.MakeButton("删", "danger");
+                btnDel.Location = new Point(396, i * 36);
+                btnDel.Size = new Size(42, 26);
                 btnDel.Click += delegate { DeleteUrlRow(row); };
 
                 pnlUrls.Controls.Add(lbl);
@@ -1397,8 +1687,12 @@ namespace UniversalLauncher
             Config.SaveAsActive(cfg, name);
 
             var results = Switcher.ExecuteFlow(cfg);
-            MessageBox.Show(this, string.Join("\r\n", results.ToArray()), "一键启动结果",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var dlg = new LaunchResultDialog(results))
+            {
+                dlg.ShowDialog(this);
+                if (dlg.AutoCloseApp)
+                    Close(); // 倒计时结束或用户点"立即关闭"，退出整个应用
+            }
         }
     }
 

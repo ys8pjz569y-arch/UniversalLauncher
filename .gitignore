@@ -6,3 +6,14 @@ profiles.txt
 UniversalLauncher.run.txt
 UniversalLauncher.check.txt
 launch_log.txt
+
+# 编译产物（从源码重建即可）
+*.exe
+*.bak.exe
+
+# 图标中间产物（最终只保留 appicon.ico）
+A_minimalist_*.png
+appicon_fixed.png
+
+# 工作区元数据
+.workbuddy/
